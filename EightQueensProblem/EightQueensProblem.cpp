@@ -5,8 +5,13 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
 
-
+/**
+ * @brief - initializes a starting population with random solutions
+ * @param populationNumber - how many solutions are gonna be generated
+ * @return - a population
+*/
 std::vector<std::vector<int>> initialGeneration(std::size_t populationNumber)
 {
     std::vector<std::vector<int>> init(populationNumber,std::vector<int>(8));
@@ -22,7 +27,12 @@ std::vector<std::vector<int>> initialGeneration(std::size_t populationNumber)
     return init;
 }
 
-
+/**
+ * @brief - function for creating a new solution from two old ones
+ * @param parent1 
+ * @param parent2 
+ * @return a new solution
+*/
 std::vector<int> reproduce(std::vector<int>& parent1, std::vector<int>& parent2)
 {
     int split = parent1.size() / 2;
@@ -40,7 +50,10 @@ std::vector<int> reproduce(std::vector<int>& parent1, std::vector<int>& parent2)
     }
     return child;
 }
-
+/**
+ * @brief - fitness function that counts number of collisions between queens in a solution
+ * @return - number of collisions , the lower the better
+*/
 int fitnessFunction(std::vector<int>& solution)
 {
     std::size_t collisions = 0;
@@ -54,26 +67,31 @@ int fitnessFunction(std::vector<int>& solution)
 
     return collisions;
 }
-
+/**
+ * @brief  - sorting function for std::sort , sorts two elements in ascending order based on their fitness function
+*/
 bool sortingFunction(std::vector<int> a, std::vector<int> b)
 {
     return fitnessFunction(a) < fitnessFunction(b);
 }
 
-std::vector<std::vector<int>> generateNewGeneration(std::vector<std::vector<int>>& oldGeneration, std::size_t numberToKeep, std::size_t numberOfCrossings)
+/**
+ * @brief - function that makes a new generation of solutions
+ * @param oldGeneration - old generation of solutions
+ * @param solutionsToUse - number indicating how many of the best solutions are going to be used for crossing
+ * @param numberOfCrossings - how many crossings are gonna be made
+ * @return a new generation of solutions
+*/
+std::vector<std::vector<int>> generateNewGeneration(std::vector<std::vector<int>>& oldGeneration, std::size_t solutionsToUse, std::size_t numberOfCrossings)
 {
     std::sort(oldGeneration.begin(), oldGeneration.end(), sortingFunction);
 
     std::vector<std::vector<int>> newGeneration;
     
-    for (std::size_t i = 0; i < numberToKeep; i++)
-    {
-        newGeneration.push_back(oldGeneration[i]);
-    }
     for (std::size_t i = 0; i < numberOfCrossings; i++)
     {
-        int parent1 = rand() % numberToKeep;
-        int parent2 = rand() % numberToKeep;
+        int parent1 = rand() % solutionsToUse;
+        int parent2 = rand() % solutionsToUse;
         std::vector<int> child1 = reproduce(oldGeneration[parent1], oldGeneration[parent2]);
         if (rand() % 100 < 5)
         {
@@ -92,6 +110,11 @@ std::vector<std::vector<int>> generateNewGeneration(std::vector<std::vector<int>
     
     return newGeneration;
 }
+/**
+ * @brief - prints a generation on the console
+ * @param gen - generation to be printed
+ * @return  - returns true if a solution is valid , false otherwise
+*/
 bool print(std::vector<std::vector<int>> gen)
 {
     for (std::vector<int> solution : gen)
@@ -101,38 +124,35 @@ bool print(std::vector<std::vector<int>> gen)
         {
             std::cout << i << ", ";
         }
-        std::cout << " ] - "<< fitnessFunction(solution)  << std::endl;
+        std::cout << "] - " << fitnessFunction(solution);
         if (fitnessFunction(solution) == 0)
         {
-            std::cout << "This is a solution for the 8 queens problem";
+            std::cout << " This is a solution for the 8 queens problem";
             return true;
         }
+        std::cout << std::endl;
     }
     return false;
 }
 int main()
 {
-    std::vector<std::vector<int>> initial = initialGeneration(30);
+    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<std::vector<int>> initial = initialGeneration(50);
     std::vector<std::vector<int>> old = initial;
-    for (std::size_t i = 1; i <= 1000; i++)
+    for (std::size_t i = 1; i <= 200; i++)
     {
         std::cout << "Generation " << i << std::endl;
-        std::vector<std::vector<int>> newGen = generateNewGeneration(old, 4, 13);
+        std::vector<std::vector<int>> newGen = generateNewGeneration(old, 10, 20);
         if (print(newGen))
         {
             break;
         }
         old = newGen;
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "\n Duration: " << duration.count();
+    return 0;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
