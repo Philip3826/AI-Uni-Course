@@ -6,10 +6,22 @@
 #include <cmath>
 #include <algorithm>
 
-bool sortingFunction(std::vector<int> a, std::vector<int> b)
+
+std::vector<std::vector<int>> initialGeneration(std::size_t populationNumber)
 {
-    return fitnessFunction(a) < fitnessFunction(b);
+    std::vector<std::vector<int>> init(populationNumber,std::vector<int>(8));
+
+    for (std::size_t i = 0; i < populationNumber; i++)
+    {
+        for (std::size_t j = 0; j < 8; j++)
+        {
+            init[i][j] = rand() % 8 + 1;
+        }
+    }
+
+    return init;
 }
+
 
 std::vector<int> reproduce(std::vector<int>& parent1, std::vector<int>& parent2)
 {
@@ -43,24 +55,75 @@ int fitnessFunction(std::vector<int>& solution)
     return collisions;
 }
 
-std::vector<std::vector<int>> generateNewGeneration(std::vector<std::vector<int>>& oldGeneration, std::size_t numberToKeep)
+bool sortingFunction(std::vector<int> a, std::vector<int> b)
+{
+    return fitnessFunction(a) < fitnessFunction(b);
+}
+
+std::vector<std::vector<int>> generateNewGeneration(std::vector<std::vector<int>>& oldGeneration, std::size_t numberToKeep, std::size_t numberOfCrossings)
 {
     std::sort(oldGeneration.begin(), oldGeneration.end(), sortingFunction);
 
     std::vector<std::vector<int>> newGeneration;
+    
     for (std::size_t i = 0; i < numberToKeep; i++)
     {
         newGeneration.push_back(oldGeneration[i]);
     }
-
-    for(auto parent)
+    for (std::size_t i = 0; i < numberOfCrossings; i++)
+    {
+        int parent1 = rand() % numberToKeep;
+        int parent2 = rand() % numberToKeep;
+        std::vector<int> child1 = reproduce(oldGeneration[parent1], oldGeneration[parent2]);
+        if (rand() % 100 < 5)
+        {
+            int mutationIndex = rand() % child1.size();
+            child1[mutationIndex] = rand() % 8 + 1;
+        }
+        newGeneration.push_back(child1);
+        std::vector<int> child2 = reproduce(oldGeneration[parent2], oldGeneration[parent1]);
+        if (rand() % 100 < 50)
+        {
+            int mutationIndex = rand() % child2.size();
+            child2[mutationIndex] = rand() % 8 + 1;
+        }
+        newGeneration.push_back(child2);
+    }
+    
+    return newGeneration;
+}
+bool print(std::vector<std::vector<int>> gen)
+{
+    for (std::vector<int> solution : gen)
+    {
+        std::cout << "[ ";
+        for (int i : solution)
+        {
+            std::cout << i << ", ";
+        }
+        std::cout << " ] - "<< fitnessFunction(solution)  << std::endl;
+        if (fitnessFunction(solution) == 0)
+        {
+            std::cout << "This is a solution for the 8 queens problem";
+            return true;
+        }
+    }
+    return false;
 }
 int main()
 {
-    std::vector<int> v1{ 3, 6, 3, 1, 4, 7, 5, 2 };
-    std::vector<int> v2{ 8,7,6,5,4,3,2,1 };
-    std::vector<int> child = reproduce(v1, v2);
-    std::cout << fitnessFunction(v1);
+    std::vector<std::vector<int>> initial = initialGeneration(30);
+    std::vector<std::vector<int>> old = initial;
+    for (std::size_t i = 1; i <= 1000; i++)
+    {
+        std::cout << "Generation " << i << std::endl;
+        std::vector<std::vector<int>> newGen = generateNewGeneration(old, 4, 13);
+        if (print(newGen))
+        {
+            break;
+        }
+        old = newGen;
+    }
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
