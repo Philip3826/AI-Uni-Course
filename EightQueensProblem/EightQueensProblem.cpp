@@ -136,10 +136,11 @@ bool print(std::vector<std::vector<int>> gen)
 }
 int main()
 {
+    srand(time(NULL));
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<std::vector<int>> initial = initialGeneration(50);
     std::vector<std::vector<int>> old = initial;
-    for (std::size_t i = 1; i <= 200; i++)
+    for (std::size_t i = 1; i <= 2000; i++)
     {
         std::cout << "Generation " << i << std::endl;
         std::vector<std::vector<int>> newGen = generateNewGeneration(old, 10, 20);
